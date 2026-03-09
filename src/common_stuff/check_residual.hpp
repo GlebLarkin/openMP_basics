@@ -6,7 +6,7 @@
 
 #include <limits>
 #include "custom_concepts.hpp"
-#include "operators.hpp"
+#include "operations.hpp"
 #include "../matrixes/CSR.hpp"
 
 template <Arithmetic T, Matrix<T> M>

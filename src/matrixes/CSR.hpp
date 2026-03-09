@@ -137,7 +137,7 @@ std::vector<T> CSR_Matrix<T>::parallel_multiply_static(const std::vector<T> &vec
     {
         std::vector<T> ans(y_size, 0);
 
-        #pragma omp parallel for schedule(static)
+        #pragma omp parallel for
         for (size_t i = 0; i < y_size; ++i)
         {
             const size_t row_start = rows[i];

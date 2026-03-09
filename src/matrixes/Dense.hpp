@@ -97,7 +97,7 @@ std::vector<T> Dense_Matrix<T>::parallel_multiply(const std::vector<T>& vec) con
     }
 
     std::vector<T> ans(ny_, T(0));
-    #pragma omp parallel
+    #pragma omp parallel for
     for (size_t i = 0; i < ny_; ++i)
         for (size_t j = 0; j < nx_; ++j)
             ans[i] += (*this)[i, j] * vec[j];

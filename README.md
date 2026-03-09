@@ -19,15 +19,15 @@
 │   │   ├── CSR.hpp
 │   │   └── Dense.hpp
 │   ├── common_stuff/
-│   │   ├── operators.hpp
+│   │   ├── operations.hpp
 │   │   ├── check_residual.hpp
 │   │   └── custom_concepts.hpp
 │   └── methods/
 │       ├── Jacoby.hpp
 │       ├── JacobyClassic.hpp
-│       ├── GaussSeidel.hpp
+│       └── GaussSeidel.hpp
 ├── tests/
-│   ├── benchmark.cpp
+│   └── benchmark.cpp
 │ 
 ├── plot.py
 └── data/

@@ -14,7 +14,7 @@
 
 #include "../src/matrixes/CSR.hpp"
 #include "../src/matrixes/Dense.hpp"
-#include "../src/common_stuff/operators.hpp"
+#include "../src/common_stuff/operations.hpp"
 #include "../src/methods/Jacoby.hpp"
 #include "../src/methods/JacobyClassic.hpp"
 #include "../src/methods/GaussSeidel.hpp"
@@ -27,7 +27,6 @@ double elapsed_ms(Clock::time_point t0, Clock::time_point t1)
     return std::chrono::duration<double, std::milli>(t1 - t0).count();
 }
 
-// ── generators ────────────────────────────────────────────────────────────────
 
 CSR_Matrix<double> generate_sparse_dd(size_t N, size_t nnz_per_row, unsigned seed = 42)
 {
@@ -57,7 +56,6 @@ CSR_Matrix<double> generate_sparse_dd(size_t N, size_t nnz_per_row, unsigned see
     return CSR_Matrix<double>(entries, N, N);
 }
 
-// build a Dense_Matrix from the same sparsity pattern for fair comparison
 Dense_Matrix<double> csr_to_dense(const CSR_Matrix<double>& A)
 {
     const auto [rows, cols] = A.size();
@@ -83,18 +81,15 @@ std::vector<double> generate_rhs(size_t N, unsigned seed = 7)
     return b;
 }
 
-// ── main ──────────────────────────────────────────────────────────────────────
 
 int main()
 {
-    fs::create_directories("../data");
-
     constexpr double tol         = 1e-6;
     constexpr size_t max_iter    = 1000;
     constexpr size_t nnz         = 10;
-    constexpr int    matvec_reps = 5000;
+    constexpr int    matvec_reps = 10000;
 
-    const std::vector<size_t> sizes = { 200, 500, 1000, 2000, 3000, 4000 };
+    const std::vector<size_t> sizes = { 200, 500, 1000, 2000, 3000, 4000, 5000 };
 
     std::ofstream csv("../data/benchmark.csv");
     csv << "N,"
@@ -104,13 +99,12 @@ int main()
 
     for (size_t N : sizes)
     {
-        std::cout << "N = " << N << " ..." << std::flush;
+        std::cout << "N = " << N << "\n";
 
         auto A_csr   = generate_sparse_dd(N, nnz);
         auto A_dense = csr_to_dense(A_csr);
         auto b       = generate_rhs(N);
 
-        // ── solvers ───────────────────────────────────────────────────────────
         auto bench_solver = [&](auto fn) -> double {
             auto t0 = Clock::now();
             fn(A_csr, b, tol, max_iter);
@@ -119,9 +113,8 @@ int main()
 
         double ms_jac_seq = bench_solver([](auto& A, auto& b, auto tol, auto mi){ return Jacoby_Classic(A, b, tol, mi); });
         double ms_jac_par = bench_solver([](auto& A, auto& b, auto tol, auto mi){ return Jacoby(A, b, tol, mi); });
-        double ms_gs_par  = bench_solver([](auto& A, auto& b, auto tol, auto mi){ return Gauss_Seidel_method(A, b, tol, mi); });
+        double ms_gs_seq  = bench_solver([](auto& A, auto& b, auto tol, auto mi){ return Gauss_Seidel_method(A, b, tol, mi); });
 
-        // ── CSR matvec ────────────────────────────────────────────────────────
         auto bench_matvec = [&](auto fn) -> double {
             auto t0 = Clock::now();
             for (int r = 0; r < matvec_reps; ++r) { volatile auto res = fn(b); }
@@ -132,21 +125,15 @@ int main()
         double ms_csr_st  = bench_matvec([&](const auto& v){ return A_csr.parallel_multiply_static(v); });
         double ms_csr_dyn = bench_matvec([&](const auto& v){ return A_csr.parallel_multiply_dynamic(v); });
 
-        // ── Dense matvec ──────────────────────────────────────────────────────
         double ms_dense_seq = bench_matvec([&](const auto& v){ return A_dense * v; });
         double ms_dense_par = bench_matvec([&](const auto& v){ return A_dense.parallel_multiply(v); });
 
         csv << N << ','
-            << ms_jac_seq << ',' << ms_jac_par << ',' << ms_gs_par  << ','
+            << ms_jac_seq << ',' << ms_jac_par << ',' << ms_gs_seq  << ','
             << ms_csr_seq << ',' << ms_csr_st  << ',' << ms_csr_dyn << ','
             << ms_dense_seq << ',' << ms_dense_par << '\n';
 
-        std::cout << " jac=" << ms_jac_seq << "/" << ms_jac_par
-                  << " gs="  << ms_gs_par
-                  << " csr=" << ms_csr_seq << "/" << ms_csr_st << "/" << ms_csr_dyn
-                  << " dense=" << ms_dense_seq << "/" << ms_dense_par << " ms\n";
     }
 
-    std::cout << "\nsaved: ../data/benchmark.csv\n";
     return 0;
 }

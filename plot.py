@@ -1,52 +1,46 @@
-#!/usr/bin/env python3
-# plot.py
-
 import pandas as pd
 import matplotlib.pyplot as plt
-import os
-
-os.makedirs("plots", exist_ok=True)
 
 df = pd.read_csv("data/benchmark.csv")
 
-plt.rcParams.update({"font.size": 11, "axes.grid": True, "grid.alpha": 0.3, "figure.dpi": 150})
+plt.figure()
 
-# ── 1. solvers ────────────────────────────────────────────────────────────────
+plt.plot(df["N"], df["ms_jacobi_seq"], "o-", label="Jacobi sequential")
+plt.plot(df["N"], df["ms_jacobi_par"], "o--", label="Jacobi parallel")
+plt.plot(df["N"], df["ms_gs_par"], "s--", label="Gauss-Seidel")
 
-fig, ax = plt.subplots(figsize=(9, 5))
+plt.xlabel("Matrix size N")
+plt.ylabel("Time, ms")
+plt.title("Jacobi vs Gauss-Seidel: solve time")
 
-ax.plot(df["N"], df["ms_jacobi_seq"], "o-",  color="#4C72B0", label="Jacobi sequential")
-ax.plot(df["N"], df["ms_jacobi_par"], "o--", color="#4C72B0", alpha=0.6, label="Jacobi parallel")
-ax.plot(df["N"], df["ms_gs_par"],     "s--", color="#DD8452", alpha=0.8, label="Gauss-Seidel")
+plt.minorticks_on()
+plt.grid(True, which="major", linewidth=0.8)
+plt.grid(True, which="minor", linewidth=0.4, alpha=0.5)
 
-ax.set_xlabel("Matrix size N")
-ax.set_ylabel("Time, ms")
-ax.set_title("Jacobi vs Gauss-Seidel: solve time")
-ax.legend()
-
-plt.tight_layout()
+plt.legend()
 plt.savefig("plots/solvers.png")
 plt.close()
-print("saved: plots/solvers.png")
 
-# ── 2. matvec ─────────────────────────────────────────────────────────────────
 
-fig, ax = plt.subplots(figsize=(9, 5))
-ax.set_yscale("log")
-ax.set_xscale("log")
+plt.figure()
 
-ax.plot(df["N"], df["ms_csr_seq"],     "o-",  color="#4C72B0", label="CSR sequential")
-ax.plot(df["N"], df["ms_csr_static"],  "o--", color="#4C72B0", alpha=0.6, label="CSR parallel static")
-ax.plot(df["N"], df["ms_csr_dynamic"], "o:",  color="#4C72B0", alpha=0.4, label="CSR parallel dynamic")
-ax.plot(df["N"], df["ms_dense_seq"],   "s-",  color="#DD8452", label="Dense sequential")
-ax.plot(df["N"], df["ms_dense_par"],   "s--", color="#DD8452", alpha=0.6, label="Dense parallel")
+plt.xscale("log")
+plt.yscale("log")
 
-ax.set_xlabel("Matrix size N")
-ax.set_ylabel("Time, ms")
-ax.set_title("CSR vs Dense matvec")
-ax.legend()
+plt.plot(df["N"], df["ms_csr_seq"], "o-", label="CSR sequential")
+plt.plot(df["N"], df["ms_csr_static"], "o--", label="CSR parallel static")
+plt.plot(df["N"], df["ms_csr_dynamic"], "o:", label="CSR parallel dynamic")
+plt.plot(df["N"], df["ms_dense_seq"], "s-", label="Dense sequential")
+plt.plot(df["N"], df["ms_dense_par"], "s--", label="Dense parallel")
 
-plt.tight_layout()
-plt.savefig("plots/matvec.png")
+plt.xlabel("Matrix size N")
+plt.ylabel("Time, ms")
+plt.title("CSR vs Dense matvec")
+
+plt.minorticks_on()
+plt.grid(True, which="major", linewidth=0.8)
+plt.grid(True, which="minor", linewidth=0.4, alpha=0.5)
+
+plt.legend()
+plt.savefig("plots/matvec1.png")
 plt.close()
-print("saved: plots/matvec.png")

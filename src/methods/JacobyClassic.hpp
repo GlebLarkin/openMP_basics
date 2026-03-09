@@ -5,7 +5,7 @@
 #include <iostream>
 #include "../matrixes/CSR.hpp"
 #include "../common_stuff/custom_concepts.hpp"
-#include "../common_stuff/operators.hpp"
+#include "../common_stuff/operations.hpp"
 #include "../common_stuff/check_residual.hpp"
 
 
